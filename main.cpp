@@ -12,16 +12,32 @@ int main(int argc, char** argv){
         return 1;
     }
 
+
+    // Wczytanie configu
+
     std::ifstream file(argv[1]);
     if (!file) {
         std::cerr << "Nie można otworzyć pliku: " << argv[1] << std::endl;
         return 1;
     }
 
-    std::string line;
-    while (std::getline(file, line)) {
-        std::cout << line << std::endl;
+    std::string config[2];
+    int i = 0;
+
+    while (std::getline(file, config[i])) {
+        i += 1;
+        if (i == 2) break;
     }
+
+    std::cout << config[0] << "\n" << config[1] << "\n";
+ 
+    config[0] = config[0].substr(config[0].find(" ") + 1);
+    config[1] = config[1].substr(config[1].find(" ") + 1);
+
+
+    // Cos nowego
+
+
 
     return 0;
 }

@@ -3,8 +3,8 @@ project(pos_projekt)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(${CMAKE_SOURCE_DIR}/opencv/include)
-link_directories(${CMAKE_SOURCE_DIR}/opencv/lib)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 add_executable(pos_projekt main.cpp)
 
