@@ -122,7 +122,15 @@ int main(int argc, char* argv[]) {
     }
     fs::create_directories(output_dir);
 
-    // TODO: wczytywanie nazw zdjec
+    std::vector<fs::path> image_files;
+    for (auto& entry : fs::directory_iterator(input_dir)) {
+        if (!entry.is_regular_file()) continue;
+        std::string ext = entry.path().extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext == ".jpg" || ext == ".png" || ext == ".bmp")
+            image_files.push_back(entry.path());
+    }
+
     // TODO: przetwarzanie zdjec
     // TODO: stworzenie kolarzu
 
