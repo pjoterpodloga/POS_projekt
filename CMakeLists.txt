@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 3.29.5)
+cmake_minimum_required(VERSION 3.2.1)
 project(pos_projekt)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib)
+message(STATUS "Zmienna środowiskowa MOJA_ZMIENNA: $ENV{OPENCV_DIR}\\x64\\vc16\\lib")
 
-add_executable(pos_projekt main.cpp)
+include_directories("$ENV{OPENCV_DIR}\\include" "include")
+link_directories("$ENV{OPENCV_DIR}\\x64\\vc16\\lib")
+
+add_executable(pos_projekt main.cpp src/ini.c)
+
+target_link_libraries(pos_projekt "opencv_world4110d")
 

@@ -1,0 +1,14 @@
+[
+{
+  "directory": "J:/Kody/c/POS_projekt/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1435~1.322\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP  -IJ:\\Kody\\opencv\\build\\include -IJ:\\Kody\\c\\POS_projekt\\include /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20 /FoCMakeFiles\\pos_projekt.dir\\main.cpp.obj /FdCMakeFiles\\pos_projekt.dir/ /FS -c J:\\Kody\\c\\POS_projekt\\main.cpp",
+  "file": "J:/Kody/c/POS_projekt/main.cpp",
+  "output": "CMakeFiles/pos_projekt.dir/main.cpp.obj"
+},
+{
+  "directory": "J:/Kody/c/POS_projekt/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1435~1.322\\bin\\Hostx64\\x64\\cl.exe  /nologo  -IJ:\\Kody\\opencv\\build\\include -IJ:\\Kody\\c\\POS_projekt\\include /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1 /FoCMakeFiles\\pos_projekt.dir\\src\\ini.c.obj /FdCMakeFiles\\pos_projekt.dir/ /FS -c J:\\Kody\\c\\POS_projekt\\src\\ini.c",
+  "file": "J:/Kody/c/POS_projekt/src/ini.c",
+  "output": "CMakeFiles/pos_projekt.dir/src/ini.c.obj"
+}
+]
