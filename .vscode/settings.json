@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.psm": "gas",
+        "iostream": "cpp",
+        "algorithm": "cpp",
+        "xstring": "cpp",
+        "filesystem": "cpp",
+        "chrono": "cpp"
+    }
+}
