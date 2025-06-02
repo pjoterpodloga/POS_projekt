@@ -10,11 +10,14 @@
 
 namespace fs = std::filesystem;
 
+/// Global mutex for synchronizing console output
+std::mutex cout_mutex;
 /// Path to input directory read from INI
 std::string input_dir;
 /// Path to output directory read from INI
 std::string output_dir;
-
+/// Atomic counter of processed images
+std::atomic<int> processed_count(0);
 
 /// Typ wskaźnika do funkcji obsługi wpisów INI
 typedef int (*ini_handler)(void* user, const char* section, const char* name, const char* value);
@@ -100,6 +103,45 @@ int my_ini_handler(void* user, const char* section, const char* name, const char
     return 1;
 }
 
+/**
+ * @brief Wykrywa krawędzie w obrazie i zwraca obraz krawędzi.
+ * @param image Wejściowy obraz kolorowy.
+ * @return Obraz krawędzi w formacie BGR.
+ */
+cv::Mat detect_edges(const cv::Mat& image) {
+    cv::Mat gray, edges;
+    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    cv::Canny(gray, edges, 100, 200);
+    cv::cvtColor(edges, edges, cv::COLOR_GRAY2BGR);
+    return edges;
+}
+
+/**
+ * @brief Przetwarza pojedynczy obraz: wykrywa krawędzie, zapisuje wynik i tworzy miniaturki.
+ * @param path Ścieżka do pliku obrazu.
+ * @param thumbs_original Wektor miniatur oryginalnych obrazów.
+ * @param thumbs_processed Wektor miniatur przetworzonych obrazów.
+ * @param thumb_size Rozmiar miniaturki (kwadrat).
+ */
+void process_image(const fs::path& path, std::vector<cv::Mat>& thumbs_original, std::vector<cv::Mat>& thumbs_processed, int thumb_size = 100) {
+    try {
+        cv::Mat img = cv::imread(path.string());
+        if (img.empty()) return;
+        cv::Mat edges = detect_edges(img);
+        std::string out_path = output_dir + "/" + path.filename().string();
+        cv::imwrite(out_path, edges);
+
+        {
+            std::lock_guard<std::mutex> lock(output_mutex);
+            thumbs_original.push_back(th_o);
+            thumbs_processed.push_back(th_p);
+        }
+        processed_count++;
+    } catch (...) {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cerr << "Błąd przetwarzania pliku: " << path << "\n";
+    }
+}
 
 /**
  * @brief Główna funkcja programu.
@@ -130,9 +172,24 @@ int main(int argc, char* argv[]) {
         if (ext == ".jpg" || ext == ".png" || ext == ".bmp")
             image_files.push_back(entry.path());
     }
+    
+    
 
-    // TODO: przetwarzanie zdjec
+    std::vector<cv::Mat> thumbs_orig, thumbs_proc;
+    std::vector<std::thread> threads;
+    unsigned int max_t = std::thread::hardware_concurrency();
+    unsigned int limit = max_t ? max_t : 4;
+    for (auto& path : image_files) {
+        threads.emplace_back([&path, &thumbs_orig, &thumbs_proc]() {
+            process_image(path, thumbs_orig, thumbs_proc);
+        });
+        if (threads.size() >= limit) {
+            for (auto& t : threads) t.join();
+            threads.clear();
+        }
+    }
+
     // TODO: stworzenie kolarzu
-
+    std::cout << "Przetworzono " << processed_count.load() << " obrazów.\n";
     return 0;
 }
