@@ -12,6 +12,8 @@ namespace fs = std::filesystem;
 
 /// Global mutex for synchronizing console output
 std::mutex cout_mutex;
+std::mutex output_mutex;
+
 /// Path to input directory read from INI
 std::string input_dir;
 /// Path to output directory read from INI
@@ -117,6 +119,28 @@ cv::Mat detect_edges(const cv::Mat& image) {
 }
 
 /**
+ * @brief Tworzy kwadratową miniaturę obrazu z zachowaniem proporcji.
+ * @param src Wejściowy obraz.
+ * @param thumb_size Rozmiar boku miniatury.
+ * @return Miniatura o wymiarach thumb_size x thumb_size.
+ */
+cv::Mat make_thumbnail(const cv::Mat& src, int thumb_size) {
+    int w = src.cols, h = src.rows;
+    float scale = thumb_size / static_cast<float>(std::max(w, h));
+    int nw = static_cast<int>(w * scale);
+    int nh = static_cast<int>(h * scale);
+
+    cv::Mat resized;
+    cv::resize(src, resized, cv::Size(nw, nh));
+
+    cv::Mat thumb(thumb_size, thumb_size, src.type(), cv::Scalar::all(0));
+    int x = (thumb_size - nw) / 2;
+    int y = (thumb_size - nh) / 2;
+    resized.copyTo(thumb(cv::Rect(x, y, nw, nh)));
+    return thumb;
+}
+
+/**
  * @brief Przetwarza pojedynczy obraz: wykrywa krawędzie, zapisuje wynik i tworzy miniaturki.
  * @param path Ścieżka do pliku obrazu.
  * @param thumbs_original Wektor miniatur oryginalnych obrazów.
@@ -131,6 +155,8 @@ void process_image(const fs::path& path, std::vector<cv::Mat>& thumbs_original, 
         std::string out_path = output_dir + "/" + path.filename().string();
         cv::imwrite(out_path, edges);
 
+        cv::Mat th_o = make_thumbnail(img, thumb_size);
+        cv::Mat th_p = make_thumbnail(edges, thumb_size);
         {
             std::lock_guard<std::mutex> lock(output_mutex);
             thumbs_original.push_back(th_o);
@@ -141,6 +167,23 @@ void process_image(const fs::path& path, std::vector<cv::Mat>& thumbs_original, 
         std::lock_guard<std::mutex> lock(cout_mutex);
         std::cerr << "Błąd przetwarzania pliku: " << path << "\n";
     }
+}
+
+/**
+ * @brief Przetwarza obrazy w celu stworzenia kolarzu.
+ * @param thumbs Zdjęcia do stworzenia kolarzu,
+ * @return Wynikowy kolarz zdjec.
+ */
+cv::Mat create_thumbnail_grid(const std::vector<cv::Mat>& thumbs, size_t cols = 10) {
+    if (thumbs.empty()) return {};
+    int thumb_size = thumbs[0].cols; // kwadrat
+    size_t rows = (thumbs.size() + cols - 1) / cols;
+    cv::Mat canvas(thumb_size * static_cast<int>(rows), thumb_size * static_cast<int>(cols), thumbs[0].type(), cv::Scalar::all(0));
+    for (size_t i = 0; i < thumbs.size(); ++i) {
+        size_t r = i / cols, c = i % cols;
+        thumbs[i].copyTo(canvas(cv::Rect(static_cast<int>(c * thumb_size), static_cast<int>(r * thumb_size), thumb_size, thumb_size)));
+    }
+    return canvas;
 }
 
 /**
@@ -172,8 +215,6 @@ int main(int argc, char* argv[]) {
         if (ext == ".jpg" || ext == ".png" || ext == ".bmp")
             image_files.push_back(entry.path());
     }
-    
-    
 
     std::vector<cv::Mat> thumbs_orig, thumbs_proc;
     std::vector<std::thread> threads;
@@ -188,8 +229,13 @@ int main(int argc, char* argv[]) {
             threads.clear();
         }
     }
+    for (auto& t : threads) t.join();
 
-    // TODO: stworzenie kolarzu
-    std::cout << "Przetworzono " << processed_count.load() << " obrazów.\n";
+    std::cout << "Przetworzono " << processed_count.load() << " obrazow.\n";
+
+    cv::Mat grid1 = create_thumbnail_grid(thumbs_orig);
+    cv::Mat grid2 = create_thumbnail_grid(thumbs_proc);
+    if (!grid1.empty()) cv::imwrite(output_dir + "/thumbnails_original.jpg", grid1);
+    if (!grid2.empty()) cv::imwrite(output_dir + "/thumbnails_processed.jpg", grid2);
     return 0;
 }
