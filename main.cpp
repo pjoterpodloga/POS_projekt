@@ -17,9 +17,9 @@ std::mutex output_mutex;
 
 /// Ścieżka do katalogu wejściowego odczytywania z pliku INI
 std::string input_dir;
-/// Path to output directory read from INI
+/// Ścieżka do katalogu wyjściowego zdefiniowanego w pliku INI
 std::string output_dir;
-/// Atomic counter of processed images
+/// Atomiczny licznik przetworzonych obrazów
 std::atomic<int> processed_count(0);
 
 /// Typ wskaźnika do funkcji obsługi wpisów INI
