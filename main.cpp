@@ -10,11 +10,12 @@
 
 namespace fs = std::filesystem;
 
-/// Global mutex for synchronizing console output
+/// Globalny mutex do synchronizacji wpisywania na konsolę
 std::mutex cout_mutex;
+/// Globalny mutex do synchronizacji buforów miniaturek
 std::mutex output_mutex;
 
-/// Path to input directory read from INI
+/// Ścieżka do katalogu wejściowego odczytywania z pliku INI
 std::string input_dir;
 /// Path to output directory read from INI
 std::string output_dir;
